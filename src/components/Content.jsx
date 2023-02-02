@@ -3,7 +3,7 @@ import ItemList from "./ItemList";
 
 function Content({ handleCheck, handleDelete, items }) {
   return (
-    <main>
+    <>
       {items.length ? (
         <ItemList
           items={items}
@@ -13,7 +13,7 @@ function Content({ handleCheck, handleDelete, items }) {
       ) : (
         <p style={{ marginTop: "2rem" }}>List is empty</p>
       )}
-    </main>
+    </>
   );
 }
 

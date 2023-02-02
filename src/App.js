@@ -3,25 +3,39 @@ import Header from "./components/Header";
 import AddItem from "./components/AddItem";
 import Content from "./components/Content";
 import Footer from "./components/Footer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
-  const [items, setItems] = useState(
-    JSON.parse(localStorage.getItem("shoppingList"))
-  );
+  const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
+  const [fetchError, setFetchError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const setAndLocItems = (newItem) => {
-    setItems(newItem);
-    localStorage.setItem("shoppingList", JSON.stringify(newItem));
-  };
+  const API_URL = " http://localhost:3500/items";
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw Error("did not receive expected data");
+        const itemsList = await response.json();
+        setItems(itemsList);
+        setFetchError(null);
+      } catch (err) {
+        setFetchError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    setTimeout(() => fetchItems(), 2000);
+  }, []);
 
   const addItem = (item) => {
     const id = items.length ? items[items.length - 1].id + 1 : 1;
     const myNewItem = { id, checked: false, item };
     const itemsList = [...items, myNewItem];
-    setAndLocItems(itemsList);
+    setItems(itemsList);
   };
 
   const handleSubmit = (e) => {
@@ -35,12 +49,12 @@ function App() {
     const itemsList = items.map((item) =>
       item.id === id ? { ...item, checked: !item.checked } : item
     );
-    setAndLocItems(itemsList);
+    setItems(itemsList);
   };
 
   const handleDelete = (id) => {
     const itemsList = items.filter((item) => item.id !== id);
-    setAndLocItems(itemsList);
+    setItems(itemsList);
   };
 
   return (
@@ -53,14 +67,21 @@ function App() {
       />
 
       <SearchItem search={search} setSearch={setSearch} />
-
-      <Content
-        items={items.filter((item) =>
-          item.item.toLowerCase().includes(search.toLowerCase())
+      <main>
+        {isLoading && <p>Loading Items ....</p>}
+        {fetchError && (
+          <p style={{ color: "red" }}>{`Error : ${fetchError}`}</p>
         )}
-        handleCheck={handleCheck}
-        handleDelete={handleDelete}
-      />
+        {!fetchError && !isLoading && 
+          <Content
+            items={items.filter((item) =>
+              item.item.toLowerCase().includes(search.toLowerCase())
+            )}
+            handleCheck={handleCheck}
+            handleDelete={handleDelete}
+          />
+        }
+      </main>
       <Footer lenght={items.length} />
     </div>
   );
