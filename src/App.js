@@ -5,51 +5,48 @@ import Footer from "./components/Footer";
 import { useState } from "react";
 
 function App() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      checked: true,
-      item: "item 1",
-    },
-    {
-      id: 2,
-      checked: false,
-      item: "Item 2",
-    },
-    {
-      id: 3,
-      checked: false,
-      item: "Item 3",
-    },
-  ]);
+  const [items, setItems] = useState(JSON.parse(localStorage.getItem('shoppingList')));
 
-  const [newItem,setNewItem] = useState('');
-  
+  const [newItem, setNewItem] = useState("");
+
+  const setAndLocItems = (newItem) => {
+    setItems(newItem);
+    localStorage.setItem("shoppingList", JSON.stringify(newItem));
+  };
+
+  const addItem = (item) => {
+    const id = items.length ? items[items.length - 1].id + 1 : 1;
+    const myNewItem = { id, checked: false, item };
+    const itemsList = [...items, myNewItem ];
+    setAndLocItems(itemsList);
+  };
+
   const handleSubmit = (e) => {
-    console.log(e.target.value);
-  }
+    e.preventDefault();
+    if (!newItem) return;
+    addItem(newItem);
+    setNewItem('');
+  };
 
   const handleCheck = (id) => {
     const itemsList = items.map((item) =>
       item.id === id ? { ...item, checked: !item.checked } : item
     );
-    setItems(itemsList);
-    localStorage.setItem("shoppingList", JSON.stringify(itemsList));
+    setAndLocItems(itemsList);
   };
 
   const handleDelete = (id) => {
     const itemsList = items.filter((item) => item.id !== id);
-    setItems(itemsList);
-    localStorage.setItem("shoppingList", JSON.stringify(itemsList));
+    setAndLocItems(itemsList);
   };
 
   return (
     <div className="app">
       <Header />
-      <AddItem 
-      newItem = {newItem}
-      setNewItem = {setNewItem}
-      handleSubmit = {handleSubmit}
+      <AddItem
+        newItem={newItem}
+        setNewItem={setNewItem}
+        handleSubmit={handleSubmit}
       />
       <Content
         items={items}
