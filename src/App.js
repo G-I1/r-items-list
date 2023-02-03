@@ -4,6 +4,7 @@ import AddItem from "./components/AddItem";
 import Content from "./components/Content";
 import Footer from "./components/Footer";
 import { useState, useEffect } from "react";
+import apiRequest from './apiRequest';
 
 function App() {
   const [items, setItems] = useState([]);
@@ -31,11 +32,22 @@ function App() {
     setTimeout(() => fetchItems(), 2000);
   }, []);
 
-  const addItem = (item) => {
+  const addItem = async (item) => {
     const id = items.length ? items[items.length - 1].id + 1 : 1;
     const myNewItem = { id, checked: false, item };
     const itemsList = [...items, myNewItem];
     setItems(itemsList);
+
+    const postOption = {
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json'
+      },
+      body : JSON.stringify(myNewItem) 
+    }
+
+    const result = await apiRequest(API_URL,postOption); 
+    if(result) setFetchError(result); 
   };
 
   const handleSubmit = (e) => {
@@ -45,16 +57,36 @@ function App() {
     setNewItem("");
   };
 
-  const handleCheck = (id) => {
+  const handleCheck = async (id) => {
     const itemsList = items.map((item) =>
       item.id === id ? { ...item, checked: !item.checked } : item
     );
     setItems(itemsList);
+
+    const myItem = itemsList.filter((item)=> item.id === id);
+
+    const updateOption = {
+      method : 'PATCH',
+      headers : {
+        'Content-Type' : 'application/json'
+      },
+      body : JSON.stringify({checked : myItem[0].checked})
+    }
+    const reqUrl = `${API_URL}/${id}`;
+    const result = await apiRequest(reqUrl,updateOption); 
+    if(result) setFetchError(result);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const itemsList = items.filter((item) => item.id !== id);
     setItems(itemsList);
+
+    const deleteOption = {
+      method : 'DELETE'
+    }
+    const reqUrl = `${API_URL}/${id}`;
+    const result = await apiRequest(reqUrl,deleteOption); 
+    if (result) setFetchError(result);
   };
 
   return (
